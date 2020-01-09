@@ -1,0 +1,195 @@
+* 主要模块
+** saving
+   api.query.Saving.xxx
+   api.tx.Saving.xxx
+** assets
+   api.query.Assets.xxx
+   api.tx.Assets.xxx
+ 
+* 所有金额均以最小decimal表示：e.g. 1BTC = 100000000
+* Js api
+  #+BEGIN_SRC js
+    /* eslint-disable @typescript-eslint/require-await */
+    /* eslint-disable @typescript-eslint/unbound-method */
+    /* eslint-disable @typescript-eslint/no-var-requires */
+    // Import the API
+    const { ApiPromise } = require('@polkadot/api');
+
+    // Our address for Alice on the dev chain
+    const ALICE = '5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY';
+
+    async function main () {
+      // Create our API with a default connection to the local node
+      const api = await ApiPromise.create({
+        types: {
+          "PhaseId": "u32",
+          "PhaseInfo": {
+            "id": "PhaseId",
+            "quota": "u128",
+            "exchange": "u128",
+            "iou_asset_id": "Option<u32>"
+          },
+          "ShareReleasePack": {
+            "asset_id": "u32",
+            "owner": "u64",
+            "empty": "boolean",
+            "major": "SharePackage",
+            "minor": "SharePackage",
+            "release_trigger": "ReleaseTrigger"
+          },
+          "SharePackage": {
+            "terms_left": "u32",
+            "terms_total": "u32",
+            "per_term": "u128"
+          }
+        }
+      });
+
+      // Make our basic chain state/storage queries, all in one go
+      const [accountNonce, now, validators] = await Promise.all([
+        api.query.system.accountNonce(ALICE),
+        api.query.timestamp.now(),
+      ]);
+
+      console.log(`accountNonce(${ALICE}) ${accountNonce}`);
+      console.log(`last block timestamp ${now.toNumber()}`);
+
+      console.log(api.query);
+      console.log(api.tx);
+    }
+
+    main().catch(console.error).finally(() => process.exit());
+  #+END_SRC
+  
+* 获得用户账户余额
+  #+BEGIN_SRC javascript 
+    api.query.Assets.freeBalance(asset_id, who)
+  #+END_SRC
+  
+* Saving 
+** 获取SBTC的asset id
+  #+BEGIN_SRC javascript 
+    api.query.Saving.collectionAssetId() : AssetId
+  #+END_SRC
+  
+** 获取saving的归集账户
+  #+BEGIN_SRC javascript 
+    api.query.Saving.collectionAccountId() : AccountId
+  #+END_SRC
+   
+** 获取RBTC的asset id
+  #+BEGIN_SRC javascript 
+    api.query.Saving.shareAssetId() : AssetId
+  #+END_SRC
+  
+** 获取account已经退还到归集地址的RBTC的数量
+   #+BEGIN_SRC javascript
+     api.query.Saving.shareAssetCollected(AccountId) : Balance
+#+END_SRC
+
+** 获取RS Contract asset id 对应的phase id
+   #+BEGIN_SRC javascript
+     api.query.Saving.iOUAssetPhaseId(AssetId) : PhaseId
+   #+END_SRC
+  
+** 获取当前的phase id
+  #+BEGIN_SRC javascript 
+    api.query.Saving.currentPhaseId() : PhaseId
+  #+END_SRC
+  
+** 获取当前phase已经被占用的配额
+   #+BEGIN_SRC javascript
+     api.query.Saving.quotaUsed() : Balance
+   #+END_SRC
+   
+** 获取phase总数
+   #+BEGIN_SRC javascript
+     api.query.Saving.numOfPhases() : u32
+   #+END_SRC
+   
+** 获取剩余phase总数
+   #+BEGIN_SRC javascript
+     api.query.Saving.numOfPhasesLeft() : u32
+   #+END_SRC
+   
+** 获取phase信息
+  #+BEGIN_SRC javascript 
+    api.query.Saving.phaseInfos(PhaseId) : PhaseInfo
+  #+END_SRC
+  
+** 获取account待释放的RBTC信息
+  #+BEGIN_SRC javascript 
+    api.query.Saving.shareUnreleasedList(AccountId) : Linkage<ShareReleasePack>
+  #+END_SRC
+  
+** 获取RBTC的账户持有情况
+  #+BEGIN_SRC javascript 
+    api.query.Saving.shareDistribution(AccountId) : Balance
+  #+END_SRC
+  
+** 获取saving账户拥有的分红收益权益（RBTC）
+   #+BEGIN_SRC javascript
+     api.query.Saving.accountShares([optional] AccountId) : Linkage<Balance>
+   #+END_SRC
+   
+** 获取上一次分红时间
+   #+BEGIN_SRC javascript
+     api.query.Saving.lastBonusTime() : Moment
+   #+END_SRC
+   
+** 获取profit asset id
+   #+BEGIN_SRC javascript
+     api.query.Saving.profitAssetId() : AssetId
+   #+END_SRC
+   
+** 获取profit pool的account id
+   #+BEGIN_SRC javascript
+     api.query.Saving.profitPool() : AccountId
+   #+END_SRC
+  
+** 获取运营团队分红的account id
+   #+BEGIN_SRC javascript
+     api.query.Saving.teamAccountId() : AccountId
+   #+END_SRC
+   
+** 质押操作
+*** 方法1
+  #+BEGIN_SRC javascript 
+    api.tx.Assets.transfer(SBTC_asset_id, collection_account, balance)
+  #+END_SRC
+  * SBTC_asset_id 可以通过saving::get_collection_asset_id获取
+  * collection_account 可以通过saving::get_collection_account获取
+  * balance 即存入的金额
+*** 方法2
+    #+BEGIN_SRC javascript
+      api.tx.Saving.staking(SBTC_asset_id, amount)
+    #+END_SRC
+*** 方法3
+    #+BEGIN_SRC javascript
+      api.tx.Saving.sudo_staking(SBTC_asset_id, amount, user)
+    #+END_SRC
+    * 必须指定最后一个参数，作为真正的质押账户
+     
+** 赎回操作 
+*** 方法1
+    withdraw目前分为两笔transfer交易
+   - 转账RBTC到collection account, 认为是用户返还之前获得的RBTC, 这一步是可选的
+  #+BEGIN_SRC javascript 
+    api.tx.Assets.transfer(RBTC_asset_id, collection_account, balance)
+  #+END_SRC
+  
+   - 转账RSContract token到collection account, 认为是用户返还RS Contract抵押，并取回SBTC
+  #+BEGIN_SRC javascript 
+    api.tx.Assets.transfer(RSC1_asset_id, collection_account, balance)
+  #+END_SRC
+  
+  !!!转账RBTC是任意行为，不受约束，但是转账RSContract是受约束的。系统会根据用户账户已经归还的RBTC数量，实时计算对应的RSContract数量 
+*** 方法2
+    #+BEGIN_SRC javascript
+      api.tx.Saving.redeem(RScontract_asset_id, amount)
+    #+END_SRC
+*** 方法3
+    #+BEGIN_SRC javascript
+      api.tx.Saving.sudo_redeem(RScontract_asset_id, amount, user)
+    #+END_SRC
+    * 必须指定最后一个参数，作为真正的质押账户

@@ -1,0 +1,98 @@
+[package]
+name = "assets"
+version = "0.1.0"
+authors = ["Definex Team"]
+edition = "2018"
+
+[features]
+default = ["std"]
+std = [
+    "serde",
+    "codec/std",
+    "support/std",
+    "system/std",
+    "sp-runtime/std",
+    "runtime-io/std",
+    "rstd/std",
+]
+
+[dependencies.serde]
+version = "1.0"
+optional = true
+
+[dependencies.codec]
+default-features = false
+features = ["derive"]
+package = "parity-scale-codec"
+version = "1.0.0"
+
+[dependencies.support]
+default_features = false
+git = "https://github.com/paritytech/substrate.git"
+package = "frame-support"
+branch = "polkadot-master"
+
+[dependencies.system]
+default_features = false
+git = "https://github.com/paritytech/substrate.git"
+package = "frame-system"
+branch = "polkadot-master"
+
+[dependencies.sp-runtime]
+default_features = false
+git = "https://github.com/paritytech/substrate.git"
+package = "sp-runtime"
+branch = "polkadot-master"
+
+[dependencies.runtime-io]
+default_features = false
+git = "https://github.com/paritytech/substrate.git"
+package = "sp-io"
+branch = "polkadot-master"
+
+[dependencies.generic-asset]
+default_features = false
+git = "https://github.com/paritytech/substrate.git"
+package = "pallet-generic-asset"
+branch = "polkadot-master"
+
+[dependencies.assets]
+default_features = false
+git = "https://github.com/paritytech/substrate.git"
+package = "pallet-assets"
+branch = "polkadot-master"
+
+[dependencies.sudo]
+default_features = false
+git = "https://github.com/paritytech/substrate.git"
+package = "pallet-sudo"
+branch = "polkadot-master"
+
+[dependencies.rstd]
+default_features = false
+git = "https://github.com/paritytech/substrate.git"
+package = "sp-std"
+branch = "polkadot-master"
+
+[dependencies]
+impl-trait-for-tuples = "0.1.2"
+
+[dev-dependencies.primitives]
+git = "https://github.com/paritytech/substrate.git"
+package = "sp-core"
+branch = "polkadot-master"
+
+[dev-dependencies.generic-asset]
+git = "https://github.com/paritytech/substrate.git"
+package = "pallet-generic-asset"
+branch = "polkadot-master"
+
+[dev-dependencies.sudo]
+git = "https://github.com/paritytech/substrate.git"
+package = "pallet-sudo"
+branch = "polkadot-master"
+
+[dev-dependencies.balances]
+git = "https://github.com/paritytech/substrate.git"
+package = "pallet-balances"
+branch = "polkadot-master"

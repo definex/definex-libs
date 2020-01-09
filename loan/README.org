@@ -1,0 +1,174 @@
+* Query API
+  
+** 获取抵押的AccountId
+   #+BEGIN_SRC javascript
+     api.query.Loan.pawnShop() : AccountId
+   #+END_SRC
+** 获取interest pool
+   #+BEGIN_SRC javascript
+     api.query.Loan.interestPool() : AccountId
+   #+END_SRC
+** 获取抵押的AssetId
+   #+BEGIN_SRC javascript
+     api.query.Loan.collateralAssetId() : AssetId
+   #+END_SRC
+** 获取借贷的AssetId
+   #+BEGIN_SRC javascript
+     api.query.Loan.loanAssetId() : AssetId
+   #+END_SRC
+** 获取最大的ltv
+   #+BEGIN_SRC javascript
+     //65% => 6500
+     api.query.Loan.globalLTVLimit() : u32
+   #+END_SRC
+** 获取触发清算的ltv
+   #+BEGIN_SRC javascript
+     //90% => 9000
+     api.query.Loan.globalLiquidationThreshold() : u32
+   #+END_SRC
+** 获取触发告警ltv
+   #+BEGIN_SRC javascript
+     //80% => 8000
+     api.query.Loan.globalWarningThreshold() : u32
+   #+END_SRC
+** 获取下一个有效的package id
+   #+BEGIN_SRC javascript
+     api.query.Loan.nextLoanPackageId() : LoanPackageId
+   #+END_SRC
+** 获取当前有效的loan packages
+   #+BEGIN_SRC javascript
+     api.query.Loan.activeLoanPackages([optional] LoanPackageId) : Linkage<LoanPackage>
+   #+END_SRC
+** 获取loan package信息
+   #+BEGIN_SRC javascript
+     api.query.Loan.loanPackages([optional] LoanPackageId) : Linkage<LoanPackage>
+   #+END_SRC
+** 获取下一个有效的loan id
+   #+BEGIN_SRC javascript
+     api.query.Loan.nextLoanId() : LoanId
+   #+END_SRC
+** 获取loan的信息
+   #+BEGIN_SRC javascript
+     api.query.Loan.loans([optional] LoanId) : Linkage<Loan>
+   #+END_SRC
+** 获取Account所有的loan id
+   #+BEGIN_SRC javascript
+     api.query.Loan.loansByAccount([optional] AccountId) : Linkage<Loan>
+   #+END_SRC
+** 获取当前BTC价格
+   #+BEGIN_SRC javascript
+     api.query.Loan.currentBTCPrice() : u32
+   #+END_SRC
+** 获取平台总的借贷资产数
+   #+BEGIN_SRC javascript
+     api.query.Loan.totalLoan() : Balance
+   #+END_SRC
+** 获取平台总的抵押资产数
+   #+BEGIN_SRC javascript
+     api.query.Loan.totalCollateral() : Balance
+   #+END_SRC
+** 获取平台累计的利润
+   #+BEGIN_SRC javascript
+     api.query.Loan.totalProfit() : Balance
+   #+END_SRC
+** 获取平台的借贷逾期惩罚金率
+   #+BEGIN_SRC javascript
+     //2% => 200
+     api.query.Loan.penaltyRate() : u32
+   #+END_SRC
+** 获取平台的清算账户
+   #+BEGIN_SRC javascript
+     api.query.Loan.liquidationAccount(): AccountId
+   #+END_SRC
+** 获取平台当前处于清算状态的借贷
+   #+BEGIN_SRC javascript
+     api.query.Loan.liquidatingLoans([optional] LoanId) : Linkage<Loan>
+   #+END_SRC
+** 获取平台的loan预算帽
+   #+BEGIN_SRC javascript
+     api.query.Loan.loanCap() : Option<Balance>
+   #+END_SRC
+
+* Tx API
+** 设置抵押的asset id
+   #+BEGIN_SRC javascript
+     //[root]
+     api.tx.Loan.setCollateralAssetId(AssetId)
+   #+END_SRC
+** 设置借贷的最大LTV
+   #+BEGIN_SRC javascript
+     //[root]
+     //65% => 6500
+     api.tx.Loan.setGlobalLtvLimit(u32)
+   #+END_SRC
+** 设置借贷的asset id
+   #+BEGIN_SRC javascript
+     //[root]
+     api.tx.Loan.setLoanAssetId(AssetId)
+   #+END_SRC
+** 设置触发清算的LTV
+   #+BEGIN_SRC javascript
+     //[root]
+     //90% = 9000
+     api.tx.Loan.setGlobalLiquidationThreshold(u32)
+   #+END_SRC
+** 设置触发告警的LTV
+   #+BEGIN_SRC javascript
+     //[root]
+     //80% => 8000
+     api.tx.Loan.setGlobalWarningThreshold(u32)
+   #+END_SRC
+** 设置平台清算账户
+   #+BEGIN_SRC javascript
+     //[root]
+     api.tx.Loan.setLiquidationAccount(AccountId)
+   #+END_SRC
+** 设置逾期惩罚率
+   #+BEGIN_SRC javascript
+     //[root]
+     //50% => 5000
+     api.tx.Loan.setPenaltyRate(u32)
+   #+END_SRC
+** 设置平台loan预算帽
+   #+BEGIN_SRC javascript
+     //[root]
+     api.tx.Loan.setLoanCap(Balance)
+   #+END_SRC
+** 创建loan package
+   - terms: 整形，天数
+   - interest_rate_hourly: 整形，*10^8, e.g. 12.34% => 12340000
+   - min_: 最少借贷数量
+   #+BEGIN_SRC javascript
+     //[root]
+     api.tx.Loan.createPackage(terms: u32, interest_rate_hourly: u32, min_: Balance)
+   #+END_SRC
+** disable loan package
+   #+BEGIN_SRC javascript
+     //[root]
+     api.tx.Loan.disablePackage(package_id)
+   #+END_SRC
+** 创建loan
+   #+BEGIN_SRC javascript
+     //[root]
+     api.tx.Loan.apply(collateral_amount: balance, loan_amount: balance, package_id)
+   #+END_SRC
+** 偿还loan
+   #+BEGIN_SRC javascript
+     api.tx.Loan.repay(loan_id)
+   #+END_SRC
+   
+** 补仓
+   #+BEGIN_SRC javascript
+     api.tx.Loan.addCollateral(LoanId, Balance)
+   #+END_SRC
+   
+** 标记完成清算
+   这个方法会在清算账户中扣除Balance的金额填充用户借贷的资产，并将多余的资产退还给借贷的用户
+   #+BEGIN_SRC javascript
+     // Balance 是第三方拍卖所得的loan asset的金额，用来充抵用户loan中借贷的
+     api.tx.Loan.markLiquidated(LoanId, Balance)
+   #+END_SRC
+** 从loan的creditline里再借
+   #+BEGIN_SRC javascript
+     api.tx.Loan.draw(LoanId, Balance)
+   #+END_SRC
